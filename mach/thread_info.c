@@ -36,13 +36,10 @@
  *	Return thread's machine-dependent state.
  */
 kern_return_t
-thread_get_state(
-	register thread_t	thread,
-	int			flavor,
-	thread_state_t		old_state,	/* pointer to OUT array */
-	natural_t		*old_state_count)	/*IN/OUT*/
+thread_get_state(thread_t thread, int flavor, thread_state_t old_state,
+	natural_t *old_state_count)
 {
-	kern_return_t		ret;
+	kern_return_t ret;
 
 	if (thread == THREAD_NULL || thread == current_thread()) {
 		return KERN_INVALID_ARGUMENT;

@@ -97,7 +97,7 @@ vfs_mountroot(void)
 	 * Inform the user with an error code, then panic.
 	 */
 	if (error) {
-		cmn_err(CE_WARN, "vfs_mountroot() failed with error %d\n", error);
+		cmn_err(CE_WARN, "Failed to mount root, error %d\n", error);
 		cmn_err(CE_PANIC, "vfs_mountroot: cannot mount root");
 	}
 

@@ -64,9 +64,6 @@ boot(int howto)
 
 		live_proc_shutdown();	/* handle live processes. */
 
-		if (panicstr == 0)
-			xumount(NODEV);	/* NO MORE PAGING - release vnodes */
-
 		dis_vfs(UADMIN_SYNC);
 		dis_vfs(UADMIN_UMOUNT);
 
