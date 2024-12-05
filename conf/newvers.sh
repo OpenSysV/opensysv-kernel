@@ -1,18 +1,17 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (c) 2024 Stefanos Stefanidis.
 # All rights reserved.
 #
 
-GITREV=`git rev-list HEAD --count`
+GITREV=$(git rev-list HEAD --count)
 
-if [ "x$GITREV" = "x" ]
-then
-	GITREV="Untracked"
+if [ -z "$GITREV" ]; then
+    GITREV="Untracked"
 fi
 
-t=`date +'%Y-%m-%d'`
-b=`date +'%Y%m%d'`
+t=$(date +'%Y-%m-%d')
+b=$(date +'%Y%m%d')
 
 major="1"
 minor="0"
@@ -40,6 +39,6 @@ const char ostype[] = "SysVr4";
 const char bldstr[] = "${b}";
 
 struct utsname utsname = {
-	"JadeOS", "unix", "4.0", "3.0", "riscv"
+    "JadeOS", "unix", "4.0", "3.0", "riscv"
 };
 EOF
