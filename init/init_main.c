@@ -53,7 +53,11 @@ vnode_t	*rootdir;
 extern int icode[], szicode;
 
 /*
- * Initialization code.
+ * Machine-independent initialization code.
+ *
+ * We are called from start.s with all interrupts disabled. They are
+ * enabled in startup(), which is in machine-dependent code.
+ *
  * fork - process 0 to schedule
  *      - process 1 execute bootstrap
  *
@@ -69,7 +73,6 @@ main(void)
 	extern int pageout();
 	extern int fsflush();
 	extern int kmem_freepool();
-	extern char bldstr[];
 	proc_t *p;
 
 	startup();
@@ -85,7 +88,6 @@ main(void)
 	 *
 	 * Good {morning, afternoon, evening, night}.
 	 */
-	cmn_err(CE_CONT, "Project Elmo - v%s\n", bldstr);
 	cmn_err(CE_CONT,
 		"JadeOS Release %s Version %s [UNIX(R) System V Release 4.0]\n",
 		utsname.release, utsname.version);
