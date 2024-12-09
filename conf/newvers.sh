@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (c) 2024 Stefanos Stefanidis.
 # All rights reserved.
 #
+
+GITREV=$(git rev-list HEAD --count)
 
 usage() {
 	echo "Usage: newvers.sh archname"
@@ -14,15 +16,12 @@ then
 	exit 1
 fi
 
-GITREV=`git rev-list HEAD --count`
-
-if [ "x$GITREV" = "x" ]
-then
-	GITREV="Untracked"
+if [ -z "$GITREV" ]; then
+    GITREV="Untracked"
 fi
 
-t=`date +'%Y-%m-%d'`
-b=`date +'%Y%m%d'`
+t=$(date +'%Y-%m-%d')
+b=$(date +'%Y%m%d')
 
 major="1"
 minor="0"
