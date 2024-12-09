@@ -6,6 +6,16 @@
 
 GITREV=$(git rev-list HEAD --count)
 
+usage() {
+	echo "Usage: newvers.sh archname"
+}
+
+if [ $# -ne 1 ]
+then
+	usage
+	exit 1
+fi
+
 if [ -z "$GITREV" ]; then
     GITREV="Untracked"
 fi
@@ -39,6 +49,6 @@ const char ostype[] = "SysVr4";
 const char bldstr[] = "${b}";
 
 struct utsname utsname = {
-    "JadeOS", "unix", "4.0", "3.0", "riscv"
+	"JadeOS", "unix", "4.0", "3.0", "${1}"
 };
 EOF
