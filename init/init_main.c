@@ -37,6 +37,7 @@
 #include <sys/utsname.h>
 #include <sys/conf.h>
 #include <sys/cmn_err.h>
+#include <sys/copyright.h>
 #include <vm/as.h>
 #include <vm/seg_vn.h>
 
@@ -51,6 +52,79 @@ int	maxmem;		/* Maximum available memory in clicks.	*/
 int	freemem;	/* Current available memory in clicks.	*/
 vnode_t	*rootdir;
 extern int icode[], szicode;
+
+#ifdef __i386__
+STATIC void
+init_finish(proc_t *p)
+{
+	struct dscr *ldt, *ldta;
+	struct gate_desc *gldt;
+	extern struct gate_desc scall_dscr, sigret_dscr;
+
+	/*
+ 	 * Allocate a stack segment.
+ 	 */
+	(void) as_map(p->p_as, userstack, ctob(SSIZE), segvn_create, zfod_argsp);
+
+	/*
+	 * 80386 B1 Errata #10 -- reserve page at 0x80000000
+	 * to prevent bug from occuring.
+	 */
+	if (do386b1_x87)
+		(void) as_map(p->p_as, 0x80000000, ctob(1), segdummy_create, NULL);
+
+	/*
+	 * Set up LDT. We use gldt to set up the syscall and sigret
+	 * call gates, and ldt/ldta for the code/data segments.
+	 */
+	gldt = (struct gate_desc *)u.u_procp->p_ldt;
+	gldt[seltoi(USER_SCALL)] = scall_dscr;
+	gldt[seltoi(USER_SIGCALL)] = sigret_dscr;
+
+	ldt = (struct dscr *)u.u_procp->p_ldt;
+	ldt += seltoi(USER_CS);
+	ldt->a_base0015 = 0;
+	ldt->a_base1623 = 0;
+	ldt->a_base2431 = 0;
+	ldt->a_lim0015 = (ushort)btoct(MAXUVADR-1);
+	ldt->a_lim1619 = ((unsigned char)(btoct(MAXUVADR-1) >> 16)) & 0x0F;
+	ldt->a_acc0007 = UTEXT_ACC1;
+	ldt->a_acc0811 = TEXT_ACC2;
+
+	ldta = (struct dscr *)u.u_procp->p_ldt;
+	ldta += seltoi(USER_DS);
+	*ldta = *ldt;
+	ldta->a_acc0007 = UDATA_ACC1;
+
+#ifdef WEITEK
+	ldta->a_lim0015 = (ushort)btoct(WEITEK_MAXADDR);
+	ldta->a_lim1619 = ((unsigned char)(btoct(WEITEK_MAXADDR) >> 16)) & 0x0F;
+#endif
+
+	/*
+	 * Set up LDT entries for floating point emulation.
+	 * 2 entries: one for a 32-bit alias to the user's stack,
+	 *   and one for a window into the fp save area in the
+	 *   user structure.
+	 */
+	ldt = (struct dscr *)u.u_procp->p_ldt;
+	ldt += seltoi(USER_FP);
+
+	setdscrbase(ldt, &u.u_fps);
+	i = sizeof(u.u_fps);
+
+#ifdef WEITEK
+	i += sizeof(u.u_weitek_reg);
+#endif
+	setdscrlim(ldt, i);
+	ldt->a_acc0007 = UDATA_ACC1;
+	ldt->a_acc0811 = DATA_ACC2_S;
+
+	ldt = (struct dscr *)u.u_procp->p_ldt;
+	ldt += seltoi(USER_FPSTK);
+	*ldt = *ldta;
+}
+#endif
 
 /*
  * Machine-independent initialization code.
@@ -79,6 +153,7 @@ main(void)
 	clkstart();
 	cred_init();
 	dnlc_init();
+	inituname();
 
 	prt_where = PRW_CONS;
 
@@ -88,9 +163,12 @@ main(void)
 	 *
 	 * Good {morning, afternoon, evening, night}.
 	 */
+	cmn_err(CE_CONT, "^\n");	/* Need a newline for alternate console */
 	cmn_err(CE_CONT,
 		"JadeOS Release %s Version %s [UNIX(R) System V Release 4.0]\n",
 		utsname.release, utsname.version);
+	cmn_err(CE_CONT, "%s\n", copyright);
+	cmn_err(CE_CONT, "All rights reserved.\n");
 
 	/*
 	 * Set up credentials.
@@ -131,6 +209,8 @@ main(void)
 	 */
 	schedpaging();
 
+	spl0();
+
 	/*
 	 * Make init process.
 	 */
@@ -166,6 +246,13 @@ main(void)
 
 		if (copyout((caddr_t)icode, (caddr_t)(UVTEXT), szicode))
 			cmn_err(CE_PANIC, "main: copyout of icode failed");
+
+		/*
+		 * The function below is for x86 only.
+		 */
+#ifdef __i386__
+		init_finish(p);
+#endif
 
 		return UVTEXT;
 	}
