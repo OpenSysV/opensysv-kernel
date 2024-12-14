@@ -40,6 +40,17 @@
 #include <sys/copyright.h>
 #include <vm/as.h>
 #include <vm/seg_vn.h>
+#include <vm/seg_dummy.h>
+#include <vm/bootconf.h>
+
+/* i386-specific headers. */
+#ifdef __i386__
+#ifdef WEITEK
+#include <i386/weitek.h>
+#endif
+#include <i386/sysi86.h>
+#include <i386/dmaable.h>
+#endif
 
 /* Well known processes */
 proc_t *proc_sched;		/* memory scheduler */
@@ -148,6 +159,12 @@ main(void)
 	extern int fsflush();
 	extern int kmem_freepool();
 	proc_t *p;
+
+	/*
+	 * Allow printing and panics.
+	 */
+	printf_init();
+	panic_init();
 
 	startup();
 	clkstart();

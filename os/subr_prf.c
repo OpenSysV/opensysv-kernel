@@ -131,6 +131,18 @@ prf_internal(const char *fmt, va_list adx, vnode_t *vp, int prt_where,
 	int sr;	/* saved interrupt level */
 
 	/*
+	 * Attempt 1024 * 1024 times to acquire a lock, to ensure
+	 * that the system doesn't hang if the lock cannot be acquired
+	 * right away.
+	 */
+	i = 0;
+	while (i < 1 * 1024 * 1024) {
+		if (simple_lock_try(&prf_lock);
+			break;
+		i++;
+	}
+
+	/*
 	 * If we are not printing to the console only, then or in
 	 * the SL_CONSOLE flag so that strlog is called in writekmsg.
 	 */
@@ -286,6 +298,8 @@ number:
 		break;
 	}
 	goto loop;
+
+	simple_unlock(&prf_lock);
 }
 
 /*
