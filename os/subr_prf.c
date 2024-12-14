@@ -62,6 +62,21 @@ lprintf(char *fmt, ...)
 	va_end(adx);
 }
 
+/*
+ * eprintf -- useful for printing an extra string before the real thing
+ *
+ * It is good to make this a separate function so that other functions
+ * will not carry the overhead of allocating a long buffer on the stack.
+ */
+void
+eprintf(char *fmt, va_list adx, int prt_where, int prt_type, char *extra_string)
+{
+	char sbuf[256];
+
+	(void) vsprintf_len(sizeof (sbuf), sbuf, fmt, adx);
+	printf_internal(prt_where, prt_type, "%s: %s\n", extra_string, sbuf);
+}
+
 STATIC void
 loutput(char c, struct tty *tp)
 {
@@ -72,51 +87,6 @@ loutput(char c, struct tty *tp)
 
 	if (prt_where & PRW_CONS)
 		putc(c, &tp->t_outq);
-}
-
-/*
- * layers_internal() handles lprintf().
- */
-STATIC void
-layers_internal()
-{
-	register		c;
-	register uint		*adx;
-	char			*s;
-	register struct tty	*tp;
-	register int		sr;	/* saved interrupt level */
-	struct tty		*errlayer();
-
-	tp = errlayer();	/* get tty pointer to error layer */
-	sr = splhi();		/* ??? */
-	if (cfreelist.c_next == NULL) { /* anywhere to buffer output? */
-		splx(sr);		/* back to where we were */
-		return;			/* nope, just return	*/
-	}
-	adx = (u_int *)x1;
-loop:
-	while ((c = *fmt++) != '%') {
-		if (c == '\0') {
-			xtvtproc(tp, T_OUTPUT);	/* ??? */
-			splx(sr);		/* back to where we were */
-			return;
-		}
-		loutput(c, tp);
-	}
-	c = *fmt++;
-	if (c == 'd' || c == 'u' || c == 'o' || c == 'x')
-		lprintn((long)*adx, c=='o'? 8: (c=='x'? 16:10), tp);
-	else if (c == 's') {
-		s = (char *)*adx;
-		while (c = *s++) {
-			loutput(c, tp);
-		}
-	} else if (c == 'D') {
-		lprintn(*(long *)adx, 10, tp);
-		adx += (sizeof(long) / sizeof(int)) - 1;
-	}
-	adx++;
-	goto loop;
 }
 
 void
@@ -138,8 +108,9 @@ prf(const char *fmt, va_list adx, vnode_t *vp, int prt_where,
  *	PRW_CONS -- output to console
  *
  * If PRW_STRING is on, PRW_CONS is not allowed simultaneously.
+ * If layer_flag is on, we will print to virtual terminals.
  *
- * prt_type is ultimately needed for calling strlog
+ * prt_type is ultimately needed for calling strlog.
  */
 STATIC void
 prf_internal(const char *fmt, va_list adx, vnode_t *vp, int prt_where,
@@ -338,6 +309,31 @@ printn(uint64_t n, int b, int width, int pad, char *lbp, char *linebuf,
 		*cp++ = pad;
 	do {
 		lbp = PRINTC(*--cp);
+	} while (cp > prbuf);
+	return (lbp);
+}
+
+/*
+ * Printn prints a number n in base b.
+ * We don't use recursion to avoid deep kernel stacks.
+ */
+STATIC char *
+lprintn(uint64_t n, int b, int width, int pad, char *lbp, char *linebuf,
+	vnode_t *vp, int prt_where, int prt_type, int sbuf_len, struct tty *tp)
+{
+	char prbuf[22];	/* sufficient for a 64 bit octal value */
+	char *cp;
+
+	cp = prbuf;
+	do {
+		*cp++ = "0123456789abcdef"[n%b];
+		n /= b;
+		width--;
+	} while (n);
+	while (width-- > 0)
+		*cp++ = pad;
+	do {
+		lbp = loutput(*--cp, tp);
 	} while (cp > prbuf);
 	return (lbp);
 }
