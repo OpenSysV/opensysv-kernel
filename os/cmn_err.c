@@ -125,7 +125,7 @@ do_panic(char *fmt, va_list adx)
 	} else {
 		panicstr = fmt;
 		panicargs = adx;
-	    paniccpu = cpu_number();
+		paniccpu = cpu_number();
 	}
 
 	prt_where = PRW_CONS | PRW_BUF;

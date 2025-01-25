@@ -56,7 +56,7 @@
 
 #ifdef INET
 #include <netinet/symredef.h>
-#endif INET
+#endif
 
 #include <sys/param.h>
 #include <sys/sockio.h>

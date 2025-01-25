@@ -7,7 +7,7 @@
 /*	actual or intended publication of such source code.	*/
 
 /*
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 
@@ -58,9 +58,9 @@ proc_t *proc_init;		/* init */
 proc_t *proc_pageout;	/* pageout daemon */
 proc_t *proc_bdflush;	/* buffer cache flush daemon */
 
-int	physmem;	/* Physical memory size in clicks.	*/
-int	maxmem;		/* Maximum available memory in clicks.	*/
-int	freemem;	/* Current available memory in clicks.	*/
+int physmem;	/* Physical memory size in clicks.	*/
+int maxmem;		/* Maximum available memory in clicks.	*/
+int freemem;	/* Current available memory in clicks.	*/
 vnode_t	*rootdir;
 extern int icode[], szicode;
 
@@ -170,12 +170,11 @@ main(void)
 	clkstart();
 	cred_init();
 	dnlc_init();
-	inituname();
 
 	prt_where = PRW_CONS;
 
 	/*
-	 * Lets display the banner early so the user has some idea that
+	 * Let's display the banner early so the user has some idea that
 	 * Unix is taking over the system.
 	 *
 	 * Good {morning, afternoon, evening, night}.
@@ -245,7 +244,7 @@ main(void)
 
 		/*
 		 * Set up the text region to do an exec of /sbin/init.
-		 * The "icode" is in riscv/icode.s.
+		 * The "icode" is in machine-dependent code.
 		 */
 
 		/*

@@ -9,12 +9,14 @@
 SRCS = \
 	init_main.c \
 	init_standsh.c \
-	init_sysent.c
+	init_sysent.c \
+	init_table.c
 
 OBJS = \
 	init_main.o \
 	init_standsh.o \
-	init_sysent.o
+	init_sysent.o \
+	init_table.o
 
 BUNDLE = init.a
 
