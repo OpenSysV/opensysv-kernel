@@ -1,0 +1,4 @@
+arch/i386/i386_autoconf.c	standard device-driver
+arch/i386/i386_firm.s		standard
+arch/i386/i386_haltsys.s	standard
+arch/i386/i386_startup.c	standard config-dependent

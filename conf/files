@@ -1,0 +1,28 @@
+ddi/ddi_drv.c			standard
+ddi/ddi_getmajor.c		standard
+ddi/ddi_itoemajor.c		standard
+exec/exec_elf.c			standard
+fs/vfs/vfs_common.c		standard
+fs/vfs/vfs_dnlc.c		standard
+fs/vfs/vfs_syscalls.c		standard
+inet/inet_in.c			optional inet
+init/init_main.c		standard
+init/init_standsh.c		optional standsh
+init/init_sysent.c		standard
+init/init_table.c		standard
+kma/kmem_init.c			standard
+mach/machine_info.c		optional mach
+mach/machine_main.c		optional mach
+mach/mach_init.c		optional mach
+mach/mach_zalloc.c		optional mach
+mach/thread_info.c		optional mach
+mach/thread_main.c		optional mach
+mach/time_stamp.c		optional mach
+os/cmn_err.c			standard
+os/kern_pgrp.c			standard
+os/kern_shutdown.c		standard
+os/subr_prf.c			standard
+sec/sec_main.c			optional yostar
+syscall/syscall_sysconfig.c	standard
+syscall/syscall_uadmin.c	standard
+syscall/syscall_utssys.c	standard

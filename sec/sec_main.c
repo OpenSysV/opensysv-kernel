@@ -3,6 +3,8 @@
  * All rights reserved.
  */
 
+#include <sys/cmn_err.h>
+
 void
 security_init(int stage)
 {

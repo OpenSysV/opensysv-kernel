@@ -16,7 +16,7 @@
 /*
  * kernel/arch/i386/i386_startup.c
  *
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 
@@ -30,7 +30,11 @@
 void
 startup(void)
 {
-	int	i, binfosum;
+	int i, binfosum;
+	char id;
+	char portval = (char)0xFF;
+	int eisa_port = 0xC80;
+	int eisa_id_port = 0xC82;
 
 	/*
 	 * Checksum the bootinfo structure.
@@ -159,9 +163,8 @@ startup(void)
 		core_size = memsize + part_used;
 
 		/* add in rest of used memory */
-		for (i = 0; i < bootinfo.memusedcnt; i++) {
-			core_size += bootinfo.memused[i].extent;		
-		}
+		for (i = 0; i < bootinfo.memusedcnt; i++)
+			core_size += bootinfo.memused[i].extent;
 
 		if (v.v_maxpmem < btoc(core_size))
 			v.v_maxpmem = btoc(core_size);
@@ -178,7 +181,6 @@ startup(void)
 				break;
 			part_used = 0;
 			extent = memNOTused[i].extent;
-			
 		}
 
 		/*
@@ -299,7 +301,7 @@ startup(void)
 	pid_init();
 
 	/*
-	 * 16 MiB DMA - Allow the x86 to access more than 16 MiB of memory.
+	 * 16 MiB DMA - Allow the system to access more than 16 MiB of memory.
 	 */
 	if (dma_check_on) {
 		set_dmalimits();
@@ -362,6 +364,14 @@ startup(void)
 	 */
 	if (((char *)&u + NBPP) != (char *) &u.u_tss)
 		cmn_err(CE_PANIC, "startup: Invalid Kernel Stack Size in U block\n");
+
+	/*
+	 * We can now enable interrupts.
+	 */
+	spl0();
+
+	if (eisa_bus && sanity_clk)
+		sanity_init();	/* start up sanity clock */
 
 	if (dma_check_on)
 		setup_dma_strategies();

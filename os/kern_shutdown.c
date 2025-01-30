@@ -89,10 +89,8 @@ boot(int howto)
 	(void) VFS_MOUNTROOT(rootvfs, ROOT_UNMOUNT);
 
 	/*
-	 * Handle halting and rebooting the system. Even though we are
-	 * using the RISC-V architecture, the method used is dependent on
-	 * the implementation. The functions haltsys() and rebootsys()
-	 * are in machine-dependent code for each RISC-V platform.
+	 * Handle halting and rebooting the system.
+	 * The functions haltsys() and rebootsys() are machine-dependent.
 	 */
 	if (howto & RB_HALT) {
 		cmn_err(CE_CONT, "System halted. You may turn off power.\n");
