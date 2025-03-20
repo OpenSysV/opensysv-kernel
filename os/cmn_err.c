@@ -34,7 +34,7 @@
  */
 
 /*
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 

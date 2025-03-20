@@ -36,12 +36,9 @@
 #include <sys/debug.h>
 #include <sys/utsname.h>
 #include <sys/conf.h>
+#include <sys/vm.h>
 #include <sys/cmn_err.h>
 #include <sys/copyright.h>
-#include <vm/as.h>
-#include <vm/seg_vn.h>
-#include <vm/seg_dummy.h>
-#include <vm/bootconf.h>
 
 /* i386-specific headers. */
 #ifdef __i386__
@@ -138,6 +135,25 @@ init_finish(proc_t *p)
 #endif
 
 /*
+ * Sets the name for the given task.
+ */
+void
+task_name(char *s)
+{
+	int length = strlen(s);
+
+	if (length < sizeof(u.u_comm))
+		bcopy(s, u.u_comm, length + 1);
+	else
+		bcopy(s, u.u_comm, length);
+
+	if (length < sizeof(u.u_psargs))
+		bcopy(s, u.u_psargs, length + 1);
+	else
+		bcopy(s, u.u_psargs, length);
+}
+
+/*
  * Machine-independent initialization code.
  *
  * We are called from start.s with all interrupts disabled. They are
@@ -179,7 +195,7 @@ main(void)
 	 *
 	 * Good {morning, afternoon, evening, night}.
 	 */
-	cmn_err(CE_CONT, "^\n");	/* Need a newline for alternate console */
+	cmn_err(CE_CONT, "\n");	/* Need a newline for alternate console */
 	cmn_err(CE_CONT,
 		"JadeOS Release %s Version %s [UNIX(R) System V Release 4.0]\n",
 		utsname.release, utsname.version);
@@ -212,7 +228,10 @@ main(void)
 	/*
 	 * This call to swapconf must come after root has been mounted.
 	 */
-	swapconf();
+	if (swapdev != NODEV) {
+		swapfile.bo_size = nswap;
+		swapconf();
+	}
 
 	/*
 	 * Initialize file descriptor info in uarea.
@@ -224,6 +243,8 @@ main(void)
 	 * Kick off timeout driven events by calling first time.
 	 */
 	schedpaging();
+	recompute_priorities();
+	compute_mach_factor();
 
 	spl0();
 
@@ -234,7 +255,7 @@ main(void)
 		p = u.u_procp;
 		proc_init = p;
 
-		/* 
+		/*
 		 * We will start the user level init.
 		 * Clear the special flags set to get
 		 * past the first context switch.

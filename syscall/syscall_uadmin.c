@@ -8,7 +8,7 @@
 /*	actual or intended publication of such source code.	*/
 
 /*
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 
@@ -66,12 +66,17 @@ uadmin(struct uadmina *uap, rval_t *rvp)
 		case A_SHUTDOWN:
 		case A_REBOOT:
 			switch (uap->fcn) {
-				case AD_HALT:
-					boot(RB_HALT);
+				case AD_HALT:		// System halt
+					boot(RB_AUTOBOOT | RB_HALT);
 					break;
-				case AD_IBOOT:
-				case AD_BOOT:
+				case AD_IBOOT:		// Return to firmware
+					boot(RB_AUTOBOOT | RB_FIRM);
+					break;
+				case AD_BOOT:		// Reboot
 					boot(RB_AUTOBOOT);
+					break;
+				case AD_BOOT_NOSYNC:	// Reboot (no sync)
+					boot(RB_AUTOBOOT | RB_NOSYNC);
 					break;
 				default:
 					cmn_err(CE_CONT, "uadmin: Invalid argument.\n");

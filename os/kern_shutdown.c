@@ -16,7 +16,7 @@
 /*
  * kernel/os/kern_shutdown.c
  *
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 
@@ -41,7 +41,7 @@ STATIC void live_proc_shutdown(void);
 STATIC void shutdown_proc(struct proc *p);
 STATIC void dis_vfs(int op);
 
-int	waittime = -1;
+int waittime = -1;
 
 /*
  * boot() replaces uadmin()'s role in powering down and rebooting
@@ -89,12 +89,16 @@ boot(int howto)
 	(void) VFS_MOUNTROOT(rootvfs, ROOT_UNMOUNT);
 
 	/*
-	 * Handle halting and rebooting the system.
-	 * The functions haltsys() and rebootsys() are machine-dependent.
+	 * Handle halting, rebooting, and returning the system to firmware.
+	 * The functions haltsys(), rtnfirm(), and rebootsys() are
+	 * machine-dependent.
 	 */
 	if (howto & RB_HALT) {
 		cmn_err(CE_CONT, "System halted. You may turn off power.\n");
 		haltsys();
+	} else if (howto & RB_FIRM) {
+		cmn_err(CE_CONT, "Returning to firmware\n");
+		rtnfirm();
 	} else {
 		cmn_err(CE_CONT, "\nAutomatic Boot Procedure\n");
 		rebootsys();

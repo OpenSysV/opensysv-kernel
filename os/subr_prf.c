@@ -13,7 +13,7 @@
  */
 
 /*
- * Copyright (c) 2024 Stefanos Stefanidis.
+ * Copyright (c) 2024, 2025 Stefanos Stefanidis.
  * All rights reserved.
  */
 
@@ -25,6 +25,18 @@ STATIC void prf_internal(const char *fmt, va_list adx, vnode_t *vp,
 	int prt_where, int prt_type, char *sprintf_buf, int sbuf_len,
 	int layer_flag);
 STATIC void loutput(char c, struct tty *tp);
+
+void
+printf_init(void)
+{
+	simple_lock_init(&prf_lock);
+}
+
+void
+panic_init(void)
+{
+	simple_lock_init(&panic_lock);
+}
 
 /*
  * Scaled down version of C Library printf.
